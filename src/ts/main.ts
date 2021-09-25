@@ -1,2 +1,3 @@
-const add = (a: number, b: number) => a + b;
-console.log(add(1, 2))
+import {render} from "./xrender";
+
+render("", {hello: "hello"});
