@@ -1,14 +1,50 @@
 <!doctype html>
-<html lang="en">
+<html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" type="text/css" href="css/main.css">
-    <script src="js/main.js" defer></script>
+    <script src="js/load-course-data.js" type="module"></script>
     <title>Moment 5</title>
 </head>
 <body>
-
+<form>
+    <label>Kurskod:
+        <input type="text">
+    </label>
+    <label>Kursnamn:
+        <input type="text">
+    </label>
+    <label>Progression:
+        <input type="text">
+    </label>
+    <label>Kursplan:
+        <input type="text">
+    </label>
+    <input type="submit">
+</form>
+<section class="results">
+    <div id="result-heading" class="result-heading">
+        <div>Kurskod:</div>
+        <div>Kursnamn:</div>
+        <div>Progression:</div>
+        <div>Kursplan:</div>
+    </div>
+    <div id="result-data" class="result-data">
+        <div class="result-row">
+            <div><div class="mobile-heading">Kurskod: </div><div class="row-data">{{ code }}</div></div>
+            <div><div class="mobile-heading">Kursnamn: </div><div class="row-data">{{ name }}</div></div>
+            <div><div class="mobile-heading">Progression: </div><div class="row-data">{{ progression }}</div></div>
+            <div><div class="mobile-heading">Kursplan: </div><div class="row-data">{{ plan }}</div></div>
+        </div>
+        <div class="result-row">
+            <div><div class="mobile-heading">Kurskod: </div><div class="row-data">{{ code }}</div></div>
+            <div><div class="mobile-heading">Kursnamn: </div><div class="row-data">{{ name }}</div></div>
+            <div><div class="mobile-heading">Progression: </div><div class="row-data">{{ progression }}</div></div>
+            <div><div class="mobile-heading">Kursplan: </div><div class="row-data">{{ plan }}</div></div>
+        </div>
+    </div>
+</section>
 </body>
 </html>

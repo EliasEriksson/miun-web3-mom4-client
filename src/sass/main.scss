@@ -1,5 +1,84 @@
+@import "mixins";
+@import "colors";
+
 $color: #cccccc;
 
 body {
   background-color: $color;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.results {
+  width: 100%;
+
+  %row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    width: 100%;
+  }
+
+  .result-heading {
+    @extend %row;
+    background-color: aquamarine;
+
+    @include media(700px) {
+      display: none;
+    }
+  }
+
+  .result-row {
+    @extend %row;
+    background-color: aqua;
+
+    .mobile-heading {
+      display: none;
+    }
+
+    div {
+      display: flex;
+    }
+
+    @include media(700px) {
+      grid-template-columns: 1fr 1fr;
+
+      .mobile-heading {
+        display: flex;
+      }
+    }
+
+    @include media(500px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+
+form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 20px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    input[type=text] {
+      padding: 5px 10px;
+      outline: none;
+    }
+  }
+
+  input[type=submit] {
+    padding: 5px 10px;
+    width: 80%;
+    margin-top: 5px;
+  }
+
+  @include media(500px) {
+    grid-template-columns: 1fr;
+  }
 }
