@@ -9,22 +9,31 @@
     <title>Moment 5 | PUT / DELETE</title>
 </head>
 <body>
-<form>
-    <label>Kurskod:
-        <input id="code" type="text" readonly>
-    </label>
-    <label>Kursnamn:
-        <input id="name" type="text">
-    </label>
-    <label>Progression:
-        <input id="progression" type="text">
-    </label>
-    <label>Kursplan:
-        <input id="plan" type="text">
-    </label>
-    <input id="update" type="submit" value="Update">
-    <input id="delete" type="submit" value="Radera">
-</form>
-<p id="error"></p>
+<header>
+    <form>
+        <div class="logout">
+            <input id="logout" type="submit" value="Logga ut">
+        </div>
+    </form>
+</header>
+<main>
+    <form>
+        <label>Kurskod:
+            <input id="code" type="text" readonly autocomplete="off">
+        </label>
+        <label>Kursnamn:
+            <input id="name" type="text" autocomplete="off">
+        </label>
+        <label>Progression:
+            <input id="progression" type="text" autocomplete="off">
+        </label>
+        <label>Kursplan:
+            <input id="plan" type="text" autocomplete="off">
+        </label>
+        <input id="update" type="submit" value="Updatera">
+        <input id="delete" type="submit" value="Radera">
+    </form>
+    <p id="error"></p>
+</main>
 </body>
 </html>

@@ -9,32 +9,41 @@
     <title>Moment 5 | GET / POST</title>
 </head>
 <body>
-<form>
-    <label>Kurskod:
-        <input id="code" type="text">
-    </label>
-    <label>Kursnamn:
-        <input id="name" type="text">
-    </label>
-    <label>Progression:
-        <input id="progression" type="text">
-    </label>
-    <label>Kursplan:
-        <input id="plan" type="text">
-    </label>
-    <input id="post" type="submit">
-</form>
-<p id="error"></p>
-<section class="results">
-    <div id="result-heading" class="result-heading">
-        <div class="heading-row">
-            <div>Kurskod:</div>
-            <div>Kursnamn:</div>
-            <div>Progression:</div>
-            <div>Kursplan:</div>
+<header>
+    <form>
+        <div class="logout">
+            <input id="logout" type="submit" value="Logga ut">
         </div>
-    </div>
-    <div id="result-data" class="result-data"></div>
-</section>
+    </form>
+</header>
+<main>
+    <form>
+        <label>Kurskod:
+            <input id="code" type="text" autocomplete="off">
+        </label>
+        <label>Kursnamn:
+            <input id="name" type="text" autocomplete="off">
+        </label>
+        <label>Progression:
+            <input id="progression" type="text" autocomplete="off">
+        </label>
+        <label>Kursplan:
+            <input id="plan" type="text" autocomplete="off">
+        </label>
+        <input id="post" type="submit">
+    </form>
+    <p id="error"></p>
+    <section class="results">
+        <div id="result-heading" class="result-heading">
+            <div class="heading-row">
+                <div>Kurskod:</div>
+                <div>Kursnamn:</div>
+                <div>Progression:</div>
+                <div>Kursplan:</div>
+            </div>
+        </div>
+        <div id="result-data" class="result-data"></div>
+    </section>
+</main>
 </body>
 </html>

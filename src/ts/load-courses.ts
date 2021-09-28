@@ -2,6 +2,7 @@ import {currentURL, requestEndpoint, redirect} from "./url.js";
 import {render} from "./xrender.js";
 import {shake, writeErrors} from "./error.js";
 import {PageinatedResponse, Course} from "./constants.js";
+import {logout} from "./triggers.js";
 
 
 if (!localStorage.getItem("token")) {
@@ -56,7 +57,10 @@ window.addEventListener("load", async () => {
     const nameElement = <HTMLInputElement>document.getElementById("name");
     const progressionElement = <HTMLInputElement>document.getElementById("progression");
     const planElement = <HTMLInputElement>document.getElementById("plan");
+    const logoutElement = <HTMLInputElement>document.getElementById("logout");
     const errorElement = <HTMLParagraphElement>document.getElementById("error");
+
+    logoutElement.addEventListener("click", logout);
 
     let response = await fetch("./templates/result-row.html");
     let template = await response.text();

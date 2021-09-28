@@ -57,8 +57,8 @@ const deleteRequest = async (code: string) => {
 }
 
 window.addEventListener("load", async () => {
-    const updateElement = document.getElementById("update");
-    const deleteElement = document.getElementById("delete");
+    const updateElement = <HTMLInputElement>document.getElementById("update");
+    const deleteElement = <HTMLInputElement>document.getElementById("delete");
     const errorElement = <HTMLParagraphElement>document.getElementById("error");
 
     const codeElement = <HTMLInputElement>document.getElementById("code");
