@@ -51,3 +51,8 @@ export const requestEndpoint = async (
     }
     return [await response.json(), response.status];
 }
+
+export const requestTemplate = async (templateName: string) => {
+    let response = await fetch("./templates/result.html");
+    return  await response.text();
+}

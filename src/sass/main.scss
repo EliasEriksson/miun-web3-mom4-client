@@ -12,6 +12,12 @@ $submit-color: #44c56f;
 $delete-color: #ed4043;
 $submit-text-color: #2c2c2c;
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   background-color: $background-color;
   font-family: "Open Sans", sans-serif;
@@ -187,5 +193,31 @@ form {
 
   @include media(500px) {
     grid-template-columns: 1fr;
+  }
+}
+
+#paginator {
+  nav {
+    display: flex;
+    background-color: $delete-color;
+    width: fit-content;
+    height: fit-content;
+    padding: 2px;
+  }
+
+  .current-page {
+    background-color: aquamarine;
+  }
+
+  ul {
+    display: flex;
+    list-style-type: none;
+    gap: 3px;
+  }
+
+  li {
+    background-color: $submit-color;
+    padding: 5px 8px;
+    color: black;
   }
 }
