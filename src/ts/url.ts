@@ -14,11 +14,26 @@ export const redirect = (from: URL, to: string): never => {
 }
 
 
+export const requestToken = async (username: string, password: string): Promise<{ token: string }> => {
+    let response =  await fetch(`${apiURL.href}token/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username: username,
+            password: password
+        })
+    });
+    return await response.json();
+}
+
+
 export const requestEndpoint = async (
     endpoint: string,
     token: string,
     method: RequestMethods = "GET",
-    data: object|undefined = undefined): Promise<any> => {
+    data: object|undefined = undefined): Promise<[any, number]> => {
     let init: RequestInit = {
         method: method,
         headers: {
@@ -34,5 +49,5 @@ export const requestEndpoint = async (
     if (method === "DELETE") {
         return null;
     }
-    return await response.json();
+    return [await response.json(), response.status];
 }

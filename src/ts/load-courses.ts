@@ -1,27 +1,13 @@
 import {currentURL, requestEndpoint, redirect} from "./url.js";
 import {render} from "./xrender.js";
+import {shake, writeErrors} from "./error.js";
+import {PageinatedResponse, Course} from "./constants.js";
 
 
-export type Course = {
-    code: string,
-    name: string,
-    progression: string,
-    plan: string
-}
-
-export type ApiResponse = {
-    count: number,
-    next: string|null,
-    previous: string|null,
-    results: Course[]
-}
-
-
-if (!currentURL.searchParams.has("token")) {
+if (!localStorage.getItem("token")) {
     redirect(currentURL, "authenticate/");
 }
-
-const token = currentURL.searchParams.get("token");
+const token = localStorage.getItem("token");
 
 
 const renderResponse = (resultDataElement: HTMLDivElement, template: string, courses: Course[]) => {
@@ -40,14 +26,26 @@ const renderResponse = (resultDataElement: HTMLDivElement, template: string, cou
     }
 }
 
-const getRequest = async (resultDataElement: HTMLDivElement, template: string) => {
-    let apiResponse: ApiResponse = await requestEndpoint("courses/", token);
-    renderResponse(resultDataElement, template, apiResponse.results);
+const getRequest = async (resultDataElement: HTMLDivElement, template: string, errorElement: HTMLParagraphElement) => {
+    let [apiResponse, status]: [PageinatedResponse, number] = await requestEndpoint("courses/", token);
+    if (200 <= status && status < 300) {
+        renderResponse(resultDataElement, template, apiResponse.results);
+    } else {
+        errorElement.innerText = "Något gick fel när data hämtades.";
+        shake(errorElement);
+    }
 }
 
-const postRequest = async (resultDataElement: HTMLDivElement, template: string, requestData: Course) => {
-    let course: Course = await requestEndpoint("courses/", token, "POST", requestData);
-    renderResponse(resultDataElement, template, [course]);
+const postRequest = async (resultDataElement: HTMLDivElement, template: string, requestData: Course, errorElement: HTMLParagraphElement) => {
+    let [course, status]: [Course, number] = await requestEndpoint("courses/", token, "POST", requestData);
+    if (200 <= status && status < 300) {
+        if (resultDataElement.children.length < 20) {
+            renderResponse(resultDataElement, template, [course]);
+        }
+    } else {
+        writeErrors(course, errorElement);
+        shake(errorElement);
+    }
 };
 
 
@@ -58,6 +56,7 @@ window.addEventListener("load", async () => {
     const nameElement = <HTMLInputElement>document.getElementById("name");
     const progressionElement = <HTMLInputElement>document.getElementById("progression");
     const planElement = <HTMLInputElement>document.getElementById("plan");
+    const errorElement = <HTMLParagraphElement>document.getElementById("error");
 
     let response = await fetch("./templates/result-row.html");
     let template = await response.text();
@@ -69,8 +68,8 @@ window.addEventListener("load", async () => {
             name: nameElement.value,
             progression: progressionElement.value,
             plan: planElement.value
-        });
+        }, errorElement);
 
     });
-    await getRequest(resultDataElement, template);
+    await getRequest(resultDataElement, template, errorElement);
 });

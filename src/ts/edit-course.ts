@@ -1,17 +1,13 @@
 import {currentURL, requestEndpoint, redirect} from "./url.js";
+import {shake, writeErrors} from "./error.js";
+import {Course} from "./constants.js";
 
 
-type Course = {
-    code: string,
-    name: string,
-    progression: string,
-    plan: string
-}
-
-if (!currentURL.searchParams.has("token")) {
+if (!localStorage.getItem("token")) {
     redirect(currentURL, "authenticate/");
 }
-const token = currentURL.searchParams.get("token");
+
+const token = localStorage.getItem("token");
 
 if (!currentURL.searchParams.has("code")) {
     redirect(currentURL, "../");
@@ -24,34 +20,46 @@ const getRequest = async (
     nameElement: HTMLInputElement,
     progressionElement: HTMLInputElement,
     planElement: HTMLInputElement): Promise<Course> => {
-    const course: Course = await requestEndpoint(`courses/${code}/`, token);
-    codeElement.value = course.code;
-    nameElement.value = course.name;
-    progressionElement.value = course.progression;
-    planElement.value = course.plan;
-    return course;
+    const [course, status]: [Course, number] = await requestEndpoint(`courses/${code}/`, token);
+    if (200 <= status && status < 300) {
+        codeElement.value = course.code;
+        nameElement.value = course.name;
+        progressionElement.value = course.progression;
+        planElement.value = course.plan;
+        return course;
+    } else {
+        redirect(currentURL, "../");
+    }
+
 }
 
-
-const updateRequest = async (course: Course) => {
-    await requestEndpoint(`courses/${course.code}/`, token, "PUT", course);
-    currentURL.searchParams.delete("code");
-    redirect(currentURL, "../");
+const updateRequest = async (course: Course, errorElement: HTMLParagraphElement) => {
+    let [newCourse, status]: [Course, number] = await requestEndpoint(
+        `courses/${course.code}/`, token, "PUT", course
+    );
+    if (200 <= status && status < 300) {
+        currentURL.searchParams.delete("code");
+        redirect(currentURL, "../");
+    } else {
+        writeErrors(newCourse, errorElement);
+        shake(errorElement);
+    }
 }
-
 
 const deleteRequest = async (code: string) => {
-    await requestEndpoint(`courses/${code}/`, token, "DELETE", {
-        code: code
-    });
-    currentURL.searchParams.delete("code");
-    redirect(currentURL, "../");
+    if (confirm(`Kursen ${code} kommer att tas bort. Det går inte att ångra. Är du säker på att du vill ta bort kursen ${code}?`)) {
+        await requestEndpoint(`courses/${code}/`, token, "DELETE", {
+            code: code
+        });
+        currentURL.searchParams.delete("code");
+        redirect(currentURL, "../");
+    }
 }
-
 
 window.addEventListener("load", async () => {
     const updateElement = document.getElementById("update");
     const deleteElement = document.getElementById("delete");
+    const errorElement = <HTMLParagraphElement>document.getElementById("error");
 
     const codeElement = <HTMLInputElement>document.getElementById("code");
     const nameElement = <HTMLInputElement>document.getElementById("name");
@@ -70,7 +78,7 @@ window.addEventListener("load", async () => {
             name: nameElement.value,
             progression: progressionElement.value,
             plan: planElement.value
-        });
+        }, errorElement);
     });
 
     deleteElement.addEventListener("click", async (event) => {
