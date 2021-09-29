@@ -56,6 +56,8 @@ a {
 
 #error {
   color: $delete-color;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .spacer {
@@ -198,9 +200,11 @@ form {
 }
 
 #paginator {
-  display: flex;
+  display: none;
+  //display: flex;
   justify-content: flex-end;
   width: 100%;
+
 
   > div {
     display: flex;
@@ -220,7 +224,7 @@ form {
   }
 
   .current-page {
-    background-color: $spacer-color;
+    background-color: $background-color;
   }
 
   ul {
@@ -230,7 +234,7 @@ form {
   }
 
   li {
-    background-color: $background-color;
+    background-color: $spacer-color;
     padding: 5px 8px;
   }
 }

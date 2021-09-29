@@ -8,123 +8,157 @@ import {logout} from "./triggers.js";
 if (!localStorage.getItem("token")) {
     redirect(currentURL, "authenticate/");
 }
-const token = localStorage.getItem("token");
 
+class CourseLoader {
+    private readonly token: string;
+    private readonly template: string;
 
-const renderResponse = (resultDataElement: HTMLDivElement, template: string, courses: Course[]) => {
-    let spacer = document.createElement("div");
-    spacer.classList.add("spacer");
+    private readonly resultDataElement: HTMLDivElement;
+    private readonly errorElement: HTMLParagraphElement;
 
-    const code_href = new URL(currentURL.href);
-    code_href.pathname += "edit/";
-    code_href.searchParams.append("code", null);
+    private codeElement: HTMLInputElement;
+    private nameElement: HTMLInputElement;
+    private progressionElement: HTMLInputElement;
+    private planElement: HTMLInputElement;
 
-    for (const course of courses) {
-        code_href.searchParams.set("code", course.code);
-        resultDataElement.appendChild(spacer.cloneNode());
-        course["code_href"] = code_href.href;
-        resultDataElement.appendChild(render(template, course));
+    private paginatorElement: HTMLDivElement;
+    private paginatorList: HTMLUListElement;
+
+    private courseCount: number
+    private pageLimit: number;
+    private pageOffset: number;
+
+    constructor(token: string, template: string) {
+        this.token = token;
+        this.resultDataElement = <HTMLDivElement>document.getElementById("result-data");
+        this.codeElement = <HTMLInputElement>document.getElementById("code");
+        this.nameElement = <HTMLInputElement>document.getElementById("name");
+        this.progressionElement = <HTMLInputElement>document.getElementById("progression");
+        this.planElement = <HTMLInputElement>document.getElementById("plan");
+        this.paginatorElement = <HTMLDivElement>document.getElementById("paginator")
+        this.errorElement = <HTMLParagraphElement>document.getElementById("error");
+        this.paginatorList = <HTMLUListElement>document.getElementById("pageinator-list");
+
+        this.template = template;
+        
+        this.courseCount = 0;
+        this.pageLimit = 10;
+        this.pageOffset = 0;
     }
-}
 
-const renderPaginator = (count: number, next: string|null, previous: string|null, paginatorElement: HTMLDivElement, paginatorList: HTMLUListElement, trigger) =>  {
-    let limit: number;
-    let offset: number;
+    static create = async (token) => {
+        const template = await requestTemplate("./templates/result.html");
+        return new CourseLoader(token, template);
+    }
 
-    // while (paginatorList.children.length > 4) {
-    //     paginatorList.removeChild(paginatorList.children[2]);
-    // }
-    paginatorList.innerHTML = "";
+    updatePageDetails = (apiResponse: PageinatedResponse) => {
+        this.courseCount = apiResponse.count;
+        console.log(apiResponse)
+        if (apiResponse.next) {
+            let nextURL = new URL(apiResponse.next);
+            this.pageLimit = parseInt(nextURL.searchParams.get("limit"));
+            // current offset must be 'limit' less than next
+            this.pageOffset = parseInt(nextURL.searchParams.get("offset")) - this.pageLimit;
+        } else if (apiResponse.previous) {
+            let previousURL = new URL(apiResponse.previous);
+            this.pageLimit = parseInt(previousURL.searchParams.get("limit"));
+            // if a previous link exist the current offset is 'limit' more than that
+            // if the previous link have no offset we are on the last page
+            if (previousURL.searchParams.has("offset")) {
+                this.pageOffset = parseInt(previousURL.searchParams.get("offset")) + this.pageLimit;
+            } else {
+                this.pageOffset = Math.floor(this.courseCount / this.pageLimit) * this.pageLimit;
+            }
+        }
+    }
 
-    if (next) {
-        let nextURL = new URL(next);
-        limit = parseInt(nextURL.searchParams.get("limit"));
-        offset = parseInt(nextURL.searchParams.get("offset")) - limit;
-    } else if (previous) {
-        let previousURL = new URL(previous);
-        limit = parseInt(previousURL.searchParams.get("limit"));
-        if (previousURL.searchParams.has("offset")) {
-            offset = parseInt(previousURL.searchParams.get("offset")) + limit;
+    renderResponse = (courses: Course[]) => {
+        let spacer = document.createElement("div");
+        spacer.classList.add("spacer");
+
+        const code_href = new URL(currentURL.href);
+        code_href.pathname += "edit/";
+        code_href.searchParams.append("code", null);
+
+        for (const course of courses) {
+            code_href.searchParams.set("code", course.code);
+            this.resultDataElement.appendChild(spacer.cloneNode());
+            course["code_href"] = code_href.href;
+            this.resultDataElement.appendChild(render(this.template, course));
+        }
+    }
+
+    renderPaginator = () => {
+        this.paginatorElement.style.display = "none";
+        this.paginatorList.innerHTML = "";
+
+        this.paginatorElement.style.display = "flex";
+        let pageCount = Math.ceil(this.courseCount / this.pageLimit);
+        let currentPageNumber = this.pageOffset / this.pageLimit;
+        let page: HTMLLIElement;
+
+        for (let pageNumber = Math.max(0, currentPageNumber - 2); pageNumber < Math.min(currentPageNumber + 3, pageCount); pageNumber++) {
+            page = document.createElement("li");
+            page.addEventListener("click", async () => {
+                await this.getRequest(`?offset=${this.pageLimit * (pageNumber)}&limit=${this.pageLimit}`);
+            });
+            if (pageNumber === currentPageNumber) {
+                page.classList.add("current-page");
+
+            }
+            page.innerHTML = `${pageNumber + 1}`;
+            this.paginatorList.appendChild(page);
+        }
+    }
+
+    getRequest = async (queryParams: string = "") => {
+        this.resultDataElement.innerHTML = "";
+        let [apiResponse, status]: [PageinatedResponse, number] = await requestEndpoint(`courses/${queryParams}`, this.token);
+        if (200 <= status && status < 300) {
+            this.updatePageDetails(apiResponse)
+            if (this.courseCount > this.pageLimit) {
+                this.renderPaginator();
+            }
+            this.renderResponse(apiResponse.results);
         } else {
-            offset = 0;
+            this.errorElement.innerText = "Något gick fel när data hämtades.";
+            shake(this.errorElement);
         }
-    } else {
-        return;
     }
 
-    let pageCount = Math.ceil(count / limit);
-    let currentPageNumber = offset / limit;
-    let page: HTMLLIElement;
-    // let paginatorNextNode = paginatorList.children[2];
-
-    for (let pageNumber = Math.max(0, currentPageNumber - 2); pageNumber < Math.min(currentPageNumber + 3, pageCount); pageNumber++) {
-        page = document.createElement("li");
-        page.addEventListener("click", async () => {
-            await trigger(`?offset=${limit * (pageNumber)}&limit=${limit}`);
+    postRequest = async () => {
+        let [course, status]: [Course, number] = await requestEndpoint("courses/", this.token, "POST", {
+            code: this.codeElement.value,
+            name: this.nameElement.value,
+            progression: this.progressionElement.value,
+            plan: this.planElement.value
         });
-
-        if (pageNumber === currentPageNumber) {
-            page.classList.add("current-page");
-
+        if (200 <= status && status < 300) {
+            this.courseCount += 1;
+            if (this.resultDataElement.children.length < this.pageLimit * 2) {
+                this.renderResponse([course]);
+            } else {
+                this.renderPaginator();
+            }
+        } else {
+            writeErrors(course, this.errorElement);
+            shake(this.errorElement);
         }
-        page.innerHTML = `${pageNumber + 1}`;
-        // paginatorList.insertBefore(page, paginatorNextNode);
-        paginatorList.appendChild(page)
     }
 }
-
-const getRequest = async (resultDataElement: HTMLDivElement, resultTemplate: string, paginatorElement: HTMLDivElement, paginatorList: HTMLUListElement, errorElement: HTMLParagraphElement, queryParams: string = "") => {
-    resultDataElement.innerHTML = "";
-    let [apiResponse, status]: [PageinatedResponse, number] = await requestEndpoint(`courses/${queryParams}`, token);
-    if (200 <= status && status < 300) {
-        renderPaginator(apiResponse.count, apiResponse.next, apiResponse.previous, paginatorElement, paginatorList, async (queryParams) => {
-            await getRequest(resultDataElement, resultTemplate, paginatorElement, paginatorList, errorElement, queryParams);
-        });
-        renderResponse(resultDataElement, resultTemplate, apiResponse.results);
-    } else {
-        errorElement.innerText = "Något gick fel när data hämtades.";
-        shake(errorElement);
-    }
-}
-
-const postRequest = async (resultDataElement: HTMLDivElement, template: string, requestData: Course, errorElement: HTMLParagraphElement) => {
-    let [course, status]: [Course, number] = await requestEndpoint("courses/", token, "POST", requestData);
-    if (200 <= status && status < 300) {
-        if (resultDataElement.children.length < 20) {
-            renderResponse(resultDataElement, template, [course]);
-        }
-    } else {
-        writeErrors(course, errorElement);
-        shake(errorElement);
-    }
-};
-
 
 window.addEventListener("load", async () => {
-    const resultDataElement = <HTMLDivElement>document.getElementById("result-data");
+    const token = localStorage.getItem("token");
     const postElement = <HTMLInputElement>document.getElementById("post");
-    const codeElement = <HTMLInputElement>document.getElementById("code");
-    const nameElement = <HTMLInputElement>document.getElementById("name");
-    const progressionElement = <HTMLInputElement>document.getElementById("progression");
-    const planElement = <HTMLInputElement>document.getElementById("plan");
     const logoutElement = <HTMLInputElement>document.getElementById("logout");
-    const paginatorElement = <HTMLDivElement>document.getElementById("paginator")
-    const errorElement = <HTMLParagraphElement>document.getElementById("error");
-    const paginatorUlElement = <HTMLUListElement>document.getElementById("pageinator-list");
-
     logoutElement.addEventListener("click", logout);
 
-    const resultTemplate = await requestTemplate("./templates/result.html");
+    const loader = await CourseLoader.create(token);
 
     postElement.addEventListener("click", async (event) => {
         event.preventDefault();
-        await postRequest(resultDataElement, resultTemplate, {
-            code: codeElement.value,
-            name: nameElement.value,
-            progression: progressionElement.value,
-            plan: planElement.value
-        }, errorElement);
-
+        await loader.postRequest();
     });
-    await getRequest(resultDataElement, resultTemplate, paginatorElement, paginatorUlElement, errorElement);
+
+    await loader.getRequest();
 });
