@@ -40,7 +40,7 @@ class CourseLoader {
         this.paginatorList = <HTMLUListElement>document.getElementById("pageinator-list");
 
         this.template = template;
-        
+
         this.courseCount = 0;
         this.pageLimit = 10;
         this.pageOffset = 0;
@@ -97,10 +97,14 @@ class CourseLoader {
         let currentPageNumber = this.pageOffset / this.pageLimit;
         let page: HTMLLIElement;
 
-        for (let pageNumber = Math.max(0, currentPageNumber - 2); pageNumber < Math.min(currentPageNumber + 3, pageCount); pageNumber++) {
+        const start = Math.max(0, currentPageNumber - 2);
+        const end = Math.min(currentPageNumber + 3, pageCount);
+        for (let pageNumber = start; pageNumber < end; pageNumber++) {
             page = document.createElement("li");
             page.addEventListener("click", async () => {
-                await this.getRequest(`?offset=${this.pageLimit * (pageNumber)}&limit=${this.pageLimit}`);
+                await this.getRequest(
+                    `?offset=${this.pageLimit * (pageNumber)}&limit=${this.pageLimit}`
+                );
             });
             if (pageNumber === currentPageNumber) {
                 page.classList.add("current-page");
@@ -113,7 +117,9 @@ class CourseLoader {
 
     getRequest = async (queryParams: string = "") => {
         this.resultDataElement.innerHTML = "";
-        let [apiResponse, status]: [PageinatedResponse, number] = await requestEndpoint(`courses/${queryParams}`, this.token);
+        let [apiResponse, status]: [PageinatedResponse, number] = await requestEndpoint(
+            `courses/${queryParams}`, this.token
+        );
         if (200 <= status && status < 300) {
             this.updatePageDetails(apiResponse)
             if (this.courseCount > this.pageLimit) {
@@ -127,12 +133,13 @@ class CourseLoader {
     }
 
     postRequest = async () => {
-        let [course, status]: [Course, number] = await requestEndpoint("courses/", this.token, "POST", {
-            code: this.codeElement.value,
-            name: this.nameElement.value,
-            progression: this.progressionElement.value,
-            plan: this.planElement.value
-        });
+        let [course, status]: [Course, number] = await requestEndpoint(
+            "courses/", this.token, "POST", {
+                code: this.codeElement.value,
+                name: this.nameElement.value,
+                progression: this.progressionElement.value,
+                plan: this.planElement.value
+            });
         if (200 <= status && status < 300) {
             this.courseCount += 1;
             if (this.resultDataElement.children.length < this.pageLimit * 2) {
