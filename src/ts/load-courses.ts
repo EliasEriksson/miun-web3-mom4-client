@@ -82,15 +82,32 @@ class CourseLoader {
         codes.push(course.code.toUpperCase());
 
         let index = codes.sort().indexOf(course.code.toUpperCase());
-        if (index < this.pageLimit - 1) {
-            this.resultDataElement.insertBefore(
-                render(this.template, this.prepareCourse(course)),
-                this.resultDataElement.children[index * 2 + 1]
-            );
-            this.resultDataElement.removeChild(this.resultDataElement.lastChild);
-            this.resultDataElement.insertBefore(
-                this.resultDataElement.lastChild, this.resultDataElement.children[index * 2 + 2]
-            )
+        if (index < this.pageLimit) {
+            console.log(index, this.pageLimit)
+
+            if (index === codes.length - 1) {
+                if (codes.length > this.pageLimit) {
+                    this.resultDataElement.removeChild(this.resultDataElement.lastChild);
+                } else {
+                    let spacer = document.createElement("div");
+                    spacer.classList.add("spacer");
+                    this.resultDataElement.appendChild(spacer);
+                }
+
+                this.resultDataElement.appendChild(
+                    render(this.template, this.prepareCourse(course))
+                )
+            } else {
+                this.resultDataElement.insertBefore(
+                    render(this.template, this.prepareCourse(course)),
+                    this.resultDataElement.children[index * 2 + 1]
+                );
+
+                this.resultDataElement.removeChild(this.resultDataElement.lastChild);
+                this.resultDataElement.insertBefore(
+                    this.resultDataElement.lastChild, this.resultDataElement.children[index * 2 + 2]
+                );
+            }
         }
     }
 
@@ -170,10 +187,14 @@ class CourseLoader {
         if (200 <= status && status < 300) {
             this.courseCount += 1;
             this.insertCourse(course);
-            if (this.resultDataElement.children.length < this.pageLimit * 2) {
-            } else {
+            if (this.resultDataElement.children.length >= this.pageLimit * 2) {
                 this.renderPaginator();
             }
+            this.codeElement.value = "";
+            this.nameElement.value = "";
+            this.progressionElement.value = "";
+            this.planElement.value = "";
+            this.codeElement.focus();
         } else {
             writeErrors(course, this.errorElement);
             shake(this.errorElement);
