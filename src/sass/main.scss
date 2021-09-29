@@ -122,8 +122,8 @@ a {
       grid-template-columns: 1fr 1fr;
 
       .mobile-heading {
-        display: flex;
-        margin-right: 1ch;
+        display: inline;
+        //margin-right: 1ch;
       }
     }
 

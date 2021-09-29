@@ -24,7 +24,7 @@ class CourseLoader {
     private paginatorElement: HTMLDivElement;
     private paginatorList: HTMLUListElement;
 
-    private courseCount: number
+    private courseCount: number;
     private pageLimit: number;
     private pageOffset: number;
 
@@ -40,7 +40,6 @@ class CourseLoader {
         this.paginatorList = <HTMLUListElement>document.getElementById("pageinator-list");
 
         this.template = template;
-
         this.courseCount = 0;
         this.pageLimit = 10;
         this.pageOffset = 0;
@@ -72,19 +71,46 @@ class CourseLoader {
         }
     }
 
+    insertCourse = (course: Course) => {
+        let results = this.resultDataElement;
+
+        let codes: string[] = Array.from(results.children).filter((child) => {
+            return !!child.children[0];
+        }).map((child) => {
+            return child.children[0].children[0].children[1].innerHTML.toUpperCase();
+        });
+        codes.push(course.code.toUpperCase());
+
+        let index = codes.sort().indexOf(course.code.toUpperCase());
+        if (index < this.pageLimit - 1) {
+            this.resultDataElement.insertBefore(
+                render(this.template, this.prepareCourse(course)),
+                this.resultDataElement.children[index * 2 + 1]
+            );
+            this.resultDataElement.removeChild(this.resultDataElement.lastChild);
+            this.resultDataElement.insertBefore(
+                this.resultDataElement.lastChild, this.resultDataElement.children[index * 2 + 2]
+            )
+        }
+    }
+
+    prepareCourse = (course: Course): Course => {
+        const code_href = new URL(currentURL.href);
+        code_href.pathname += "edit/";
+        code_href.searchParams.append("code", course.code);
+        course["code_href"] = code_href.href;
+        return course;
+    }
+
     renderResponse = (courses: Course[]) => {
         let spacer = document.createElement("div");
         spacer.classList.add("spacer");
 
-        const code_href = new URL(currentURL.href);
-        code_href.pathname += "edit/";
-        code_href.searchParams.append("code", null);
-
         for (const course of courses) {
-            code_href.searchParams.set("code", course.code);
             this.resultDataElement.appendChild(spacer.cloneNode());
-            course["code_href"] = code_href.href;
-            this.resultDataElement.appendChild(render(this.template, course));
+            this.resultDataElement.appendChild(render(
+                this.template, this.prepareCourse(course)
+            ));
         }
     }
 
@@ -106,9 +132,9 @@ class CourseLoader {
                     `?offset=${this.pageLimit * (pageNumber)}&limit=${this.pageLimit}`
                 );
             });
+
             if (pageNumber === currentPageNumber) {
                 page.classList.add("current-page");
-
             }
             page.innerHTML = `${pageNumber + 1}`;
             this.paginatorList.appendChild(page);
@@ -142,8 +168,8 @@ class CourseLoader {
             });
         if (200 <= status && status < 300) {
             this.courseCount += 1;
+            this.insertCourse(course);
             if (this.resultDataElement.children.length < this.pageLimit * 2) {
-                this.renderResponse([course]);
             } else {
                 this.renderPaginator();
             }
