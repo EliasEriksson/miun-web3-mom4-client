@@ -31,19 +31,20 @@ const renderPaginator = (count: number, next: string|null, previous: string|null
     let limit: number;
     let offset: number;
 
-    while (paginatorList.children.length > 4) {
-        paginatorList.removeChild(paginatorList.children[2]);
-    }
+    // while (paginatorList.children.length > 4) {
+    //     paginatorList.removeChild(paginatorList.children[2]);
+    // }
+    paginatorList.innerHTML = "";
 
     if (next) {
         let nextURL = new URL(next);
         limit = parseInt(nextURL.searchParams.get("limit"));
-        offset = parseInt(nextURL.searchParams.get("offset"));
+        offset = parseInt(nextURL.searchParams.get("offset")) - limit;
     } else if (previous) {
         let previousURL = new URL(previous);
         limit = parseInt(previousURL.searchParams.get("limit"));
         if (previousURL.searchParams.has("offset")) {
-            offset = parseInt(previousURL.searchParams.get("offset"));
+            offset = parseInt(previousURL.searchParams.get("offset")) + limit;
         } else {
             offset = 0;
         }
@@ -54,24 +55,25 @@ const renderPaginator = (count: number, next: string|null, previous: string|null
     let pageCount = Math.ceil(count / limit);
     let currentPageNumber = offset / limit;
     let page: HTMLLIElement;
-    let paginatorNextNode = paginatorList.children[2]
+    // let paginatorNextNode = paginatorList.children[2];
 
-    for (let i = Math.max(1, currentPageNumber - 2); i <= Math.min(currentPageNumber + 2, pageCount); i++) {
+    for (let pageNumber = Math.max(0, currentPageNumber - 2); pageNumber < Math.min(currentPageNumber + 3, pageCount); pageNumber++) {
         page = document.createElement("li");
         page.addEventListener("click", async () => {
-            console.log("clicked!")
-            await trigger(`?offset=${offset * (i - 1)}&limit=${limit}`);
+            await trigger(`?offset=${limit * (pageNumber)}&limit=${limit}`);
         });
-        if (i === currentPageNumber) {
+
+        if (pageNumber === currentPageNumber) {
             page.classList.add("current-page");
+
         }
-        page.innerHTML = `${i}`;
-        paginatorList.insertBefore(page, paginatorNextNode)
+        page.innerHTML = `${pageNumber + 1}`;
+        // paginatorList.insertBefore(page, paginatorNextNode);
+        paginatorList.appendChild(page)
     }
 }
 
 const getRequest = async (resultDataElement: HTMLDivElement, resultTemplate: string, paginatorElement: HTMLDivElement, paginatorList: HTMLUListElement, errorElement: HTMLParagraphElement, queryParams: string = "") => {
-    console.log("requesting with: ", queryParams);
     resultDataElement.innerHTML = "";
     let [apiResponse, status]: [PageinatedResponse, number] = await requestEndpoint(`courses/${queryParams}`, token);
     if (200 <= status && status < 300) {

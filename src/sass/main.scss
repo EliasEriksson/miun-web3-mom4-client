@@ -140,6 +140,7 @@ form {
   grid-template-columns: 1fr 1fr;
   gap: 5px 20px;
   width: 100%;
+  max-width: 960px;
 
   label {
     display: flex;
@@ -197,16 +198,29 @@ form {
 }
 
 #paginator {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+
+  > div {
+    display: flex;
+    align-items: center;
+
+    > div {
+      margin-right: 1ch;
+    }
+  }
+
   nav {
     display: flex;
-    background-color: $delete-color;
+    background-color: $spacer-color;
     width: fit-content;
     height: fit-content;
     padding: 2px;
   }
 
   .current-page {
-    background-color: aquamarine;
+    background-color: $spacer-color;
   }
 
   ul {
@@ -216,8 +230,7 @@ form {
   }
 
   li {
-    background-color: $submit-color;
+    background-color: $background-color;
     padding: 5px 8px;
-    color: black;
   }
 }
