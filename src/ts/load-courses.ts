@@ -99,6 +99,7 @@ class CourseLoader {
         code_href.pathname += "edit/";
         code_href.searchParams.append("code", course.code);
         course["code_href"] = code_href.href;
+        course.code = course.code.toUpperCase()
         return course;
     }
 
