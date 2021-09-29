@@ -83,8 +83,6 @@ class CourseLoader {
 
         let index = codes.sort().indexOf(course.code.toUpperCase());
         if (index < this.pageLimit) {
-            console.log(index, this.pageLimit)
-
             if (index === codes.length - 1) {
                 if (codes.length > this.pageLimit) {
                     this.resultDataElement.removeChild(this.resultDataElement.lastChild);
@@ -102,11 +100,19 @@ class CourseLoader {
                     render(this.template, this.prepareCourse(course)),
                     this.resultDataElement.children[index * 2 + 1]
                 );
+                if (index === codes.length - 1) {
+                    this.resultDataElement.removeChild(this.resultDataElement.lastChild);
+                    this.resultDataElement.insertBefore(
+                        this.resultDataElement.lastChild, this.resultDataElement.children[index * 2 + 2]
+                    );
+                } else {
+                    let spacer = document.createElement("div");
+                    spacer.classList.add("spacer");
+                    this.resultDataElement.insertBefore(
+                        spacer, this.resultDataElement.children[index * 2 + 2]
+                    )
+                }
 
-                this.resultDataElement.removeChild(this.resultDataElement.lastChild);
-                this.resultDataElement.insertBefore(
-                    this.resultDataElement.lastChild, this.resultDataElement.children[index * 2 + 2]
-                );
             }
         }
     }
@@ -187,7 +193,7 @@ class CourseLoader {
         if (200 <= status && status < 300) {
             this.courseCount += 1;
             this.insertCourse(course);
-            if (this.resultDataElement.children.length >= this.pageLimit * 2) {
+            if (this.courseCount > this.pageLimit) {
                 this.renderPaginator();
             }
             this.codeElement.value = "";
