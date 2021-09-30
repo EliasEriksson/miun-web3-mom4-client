@@ -9,17 +9,21 @@ class CourseLoader {
     private readonly token: string;
     private readonly template: string;
 
+    // i/o elements for results / errors
     private readonly resultDataElement: HTMLDivElement;
     private readonly errorElement: HTMLParagraphElement;
 
+    // form elements
     private codeElement: HTMLInputElement;
     private nameElement: HTMLInputElement;
     private progressionElement: HTMLInputElement;
     private planElement: HTMLInputElement;
 
+    //paginator elements
     private paginatorElement: HTMLDivElement;
     private paginatorList: HTMLUListElement;
 
+    // helps to keep track on where in the list of courses to add a new course.
     private courseCount: number;
     private pageLimit: number;
     private pageOffset: number;
@@ -38,10 +42,12 @@ class CourseLoader {
         let loginForm = document.getElementsByClassName("acquire-auth");
 
         if (token) {
+            // user is logged in so forms that requires authentication can be viewed.
             for (let i = 0; i < requireAuthForms.length; i++) {
                 (<HTMLElement>requireAuthForms.item(i)).style.display = "grid";
             }
         } else {
+            // user is not logged in. viewing forms for login.
             for (let i = 0; i < loginForm.length; i++) {
                 (<HTMLElement>loginForm.item(i)).style.display = "grid";
                 loginForm.item(i).addEventListener("click", (event) => {
@@ -57,14 +63,32 @@ class CourseLoader {
         this.pageOffset = 0;
     }
 
-    static create = async (token) => {
-        const template = await requestTemplate("./templates/result.html");
+    /**
+     * an "asynchronous constructor" for load-courses.
+     *
+     * this method is fully capable of properly initializing this class.
+     */
+    static create = async () => {
+        let token = localStorage.getItem("token");
+        let templateName = "result-no-auth.html";
+        if (token) {
+            templateName = "result.html"
+        }
+        const template = await requestTemplate(templateName);
         return new CourseLoader(token, template);
     }
 
+    /**
+     * updates the private properties: pageLimit, pageOffset and courseCount.
+     *
+     * the initial value for pageLimit is a "guess" on how many results the service prefers to serve
+     * the service preferred value for pages will be knows as soon there is at least 2 pages worth of entries
+     * in the database and getRequest is called.
+     *
+     * @param apiResponse: an ApiResponse structured object.
+     */
     updatePageDetails = (apiResponse: PageinatedResponse) => {
         this.courseCount = apiResponse.count;
-        console.log(apiResponse)
         if (apiResponse.next) {
             let nextURL = new URL(apiResponse.next);
             this.pageLimit = parseInt(nextURL.searchParams.get("limit"));
@@ -83,17 +107,30 @@ class CourseLoader {
         }
     }
 
+    /**
+     * insert a course into the table of courses.
+     *
+     * the courses are sorted alphabetically and if a new course is created with a
+     * POST request its inserted in the list of courses that is currently being viewed if
+     * it fits into it alphabetically.
+     *
+     * @param course
+     */
     insertCourse = (course: Course) => {
         let results = this.resultDataElement;
 
         let codes: string[] = Array.from(results.children).filter((child) => {
+            // filters out the spacing linves from actual datarows
             return !!child.children[0];
         }).map((child) => {
+            // gets the course codes in all uppercase
             return child.children[0].children[0].children[1].innerHTML.toUpperCase();
         });
+        // adds the course code of the course to be inserted.
         codes.push(course.code.toUpperCase());
-
+        // sort the list
         let index = codes.sort().indexOf(course.code.toUpperCase());
+        // if the index is not last the new course should be inserted.
         if (index < this.pageLimit) {
             if (index === codes.length - 1) {
                 if (codes.length > this.pageLimit) {
@@ -103,7 +140,6 @@ class CourseLoader {
                     spacer.classList.add("spacer");
                     this.resultDataElement.appendChild(spacer);
                 }
-
                 this.resultDataElement.appendChild(
                     render(this.template, this.prepareCourse(course))
                 )
@@ -129,7 +165,15 @@ class CourseLoader {
         }
     }
 
-    prepareCourse = (course: Course): Course => {
+    /**
+     * prepares the course to be rendered.
+     *
+     * a code_href attribute is added that contains the api endpoint
+     * for the specific course.
+     *
+     * @param course
+     */
+    prepareCourse = (course: Course): { [key: string]: string } => {
         const code_href = new URL(currentURL.href);
         code_href.pathname += "edit/";
         code_href.searchParams.append("code", course.code);
@@ -138,6 +182,11 @@ class CourseLoader {
         return course;
     }
 
+    /**
+     * renders a list of courses to HTML.
+     *
+     * @param courses: a list of courses to be rendered.
+     */
     renderResponse = (courses: Course[]) => {
         let spacer = document.createElement("div");
         spacer.classList.add("spacer");
@@ -150,11 +199,13 @@ class CourseLoader {
         }
     }
 
+    /**
+     * renders the paginator to the page.
+     */
     renderPaginator = () => {
-        this.paginatorElement.style.display = "none";
         this.paginatorList.innerHTML = "";
-
         this.paginatorElement.style.display = "flex";
+
         let pageCount = Math.ceil(this.courseCount / this.pageLimit);
         let currentPageNumber = this.pageOffset / this.pageLimit;
         let page: HTMLLIElement;
@@ -163,6 +214,8 @@ class CourseLoader {
         const end = Math.min(currentPageNumber + 3, pageCount);
         for (let pageNumber = start; pageNumber < end; pageNumber++) {
             page = document.createElement("li");
+
+            //if a page on the paginator i clicked a new get request is made.
             page.addEventListener("click", async () => {
                 await this.getRequest(
                     `?offset=${this.pageLimit * (pageNumber)}&limit=${this.pageLimit}`
@@ -177,13 +230,19 @@ class CourseLoader {
         }
     }
 
+    /**
+     * makes a GET request to the service.
+     *
+     * the received courses are then rendered onto the page.
+     * @param queryParams: query params for accessing different pages (used by renderPaginator)
+     */
     getRequest = async (queryParams: string = "") => {
         this.resultDataElement.innerHTML = "";
         let [apiResponse, status]: [PageinatedResponse, number] = await requestEndpoint(
             `courses/${queryParams}`, this.token
         );
         if (200 <= status && status < 300) {
-            this.updatePageDetails(apiResponse)
+            this.updatePageDetails(apiResponse);
             if (this.courseCount > this.pageLimit) {
                 this.renderPaginator();
             }
@@ -194,6 +253,12 @@ class CourseLoader {
         }
     }
 
+    /**
+     * creates a new course.
+     *
+     * if successful an attempt to insert it onto the page is made if it sorts lower alphabetically
+     * than the the currently displayed courses.
+     */
     postRequest = async () => {
         let [course, status]: [Course, number] = await requestEndpoint(
             "courses/", this.token, "POST", {
@@ -222,12 +287,11 @@ class CourseLoader {
 }
 
 window.addEventListener("load", async () => {
-    const token = localStorage.getItem("token");
     const postElement = <HTMLInputElement>document.getElementById("post");
     const logoutElement = <HTMLInputElement>document.getElementById("logout");
     logoutElement.addEventListener("click", logout);
 
-    const loader = await CourseLoader.create(token);
+    const loader = await CourseLoader.create();
 
     postElement.addEventListener("click", async (event) => {
         event.preventDefault();

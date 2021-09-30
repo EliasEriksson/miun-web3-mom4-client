@@ -3,14 +3,26 @@ export const currentURL = new URL(document.location.href);
 
 type RequestMethods = "GET" | "POST" | "PUT" | "DELETE";
 
+/**
+ * redirects the user from one page to another.
+ *
+ * @param from: a URL object, this will almost always be set to currentURL.
+ * @param to: a string to add onto the URL pathname.
+ */
 export const redirect = (from: URL, to: string): never => {
     if (to.startsWith("/")) {
+        // absolute URL
         from.pathname = to;
     } else {
+        // relative URL
         if (from.pathname.endsWith("/")) {
+            // to did not specify a file (.../) in the request
+            // so the to location can simply be added on top of it.
             from.pathname += to;
         } else {
-            // localhost/index.html
+            // to does specify a specific file (.../index.html) in the request
+            // so teh location is added onto before the file.
+            // hopefully the file was index.html otherwise it most likely will fail.
             let pathParts = from.pathname.split("/");
             if (to.endsWith("/")) {
                 pathParts[pathParts.length - 2] += `/${to.substring(0, to.length - 1)}`
@@ -18,16 +30,19 @@ export const redirect = (from: URL, to: string): never => {
                 pathParts[pathParts.length - 2] += `/${to}`;
             }
             from.pathname = pathParts.join("/");
-            console.log(from);
         }
 
     }
-    console.log(from)
     document.location.href = from.href;
     throw "Redirecting"; // adding this so ts understands this function never returns
 }
 
-
+/**
+ * requests an api key for a specific user.
+ *
+ * @param username: the users username
+ * @param password: the users password.
+ */
 export const requestToken = async (username: string, password: string): Promise<{ token: string }> => {
     let response =  await fetch(`${apiURL.href}token/`, {
         method: "POST",
@@ -42,7 +57,16 @@ export const requestToken = async (username: string, password: string): Promise<
     return await response.json();
 }
 
-
+/**
+ * a general function to preform GET / POST / PUT / DELETE request.
+ *
+ * necessary headers will be set as needed.
+ *
+ * @param endpoint: the api endpoint to request
+ * @param token: the authentication token. required for POST / PUT / DELETE.
+ * @param method: the request method.
+ * @param data: general data to be sent with the request.
+ */
 export const requestEndpoint = async (
     endpoint: string,
     token: string|null,
@@ -68,7 +92,14 @@ export const requestEndpoint = async (
     return [await response.json(), response.status];
 }
 
+/**
+ * request file from the template directory.
+ *
+ * this template will be used with the render function in xrender.ts
+ *
+ * @param templateName: filename of the template.
+ */
 export const requestTemplate = async (templateName: string) => {
-    let response = await fetch("./templates/result.html");
+    let response = await fetch(`./templates/${templateName}`);
     return  await response.text();
 }

@@ -1,4 +1,6 @@
 /**
+ * typescript implementation of https://github.com/EliasEriksson/xRender/blob/main/static/js/xRender.js
+ *
  * renders a htmlTemplate to HTML
  *
  * all keys in the object are used to replace the {{ variables }} in the template.
