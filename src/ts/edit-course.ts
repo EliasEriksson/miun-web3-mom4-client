@@ -4,7 +4,7 @@ import {Course} from "./constants.js";
 
 
 if (!localStorage.getItem("token")) {
-    redirect(currentURL, "authenticate/");
+    redirect(currentURL, "../authenticate/");
 }
 
 const token = localStorage.getItem("token");

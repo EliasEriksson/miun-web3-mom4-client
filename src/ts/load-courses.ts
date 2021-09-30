@@ -5,10 +5,6 @@ import {PageinatedResponse, Course} from "./constants.js";
 import {logout} from "./triggers.js";
 
 
-if (!localStorage.getItem("token")) {
-    redirect(currentURL, "authenticate/");
-}
-
 class CourseLoader {
     private readonly token: string;
     private readonly template: string;
@@ -38,6 +34,22 @@ class CourseLoader {
         this.paginatorElement = <HTMLDivElement>document.getElementById("paginator")
         this.errorElement = <HTMLParagraphElement>document.getElementById("error");
         this.paginatorList = <HTMLUListElement>document.getElementById("pageinator-list");
+        let requireAuthForms = document.getElementsByClassName("require-auth");
+        let loginForm = document.getElementsByClassName("acquire-auth");
+
+        if (token) {
+            for (let i = 0; i < requireAuthForms.length; i++) {
+                (<HTMLElement>requireAuthForms.item(i)).style.display = "grid";
+            }
+        } else {
+            for (let i = 0; i < loginForm.length; i++) {
+                (<HTMLElement>loginForm.item(i)).style.display = "grid";
+                loginForm.item(i).addEventListener("click", (event) => {
+                    event.preventDefault();
+                    redirect(currentURL, "authenticate/");
+                })
+            }
+        }
 
         this.template = template;
         this.courseCount = 0;
@@ -201,6 +213,7 @@ class CourseLoader {
             this.progressionElement.value = "";
             this.planElement.value = "";
             this.codeElement.focus();
+            this.errorElement.innerText = "";
         } else {
             writeErrors(course, this.errorElement);
             shake(this.errorElement);

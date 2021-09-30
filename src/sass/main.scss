@@ -38,6 +38,7 @@ main {
   align-items: center;
   width: 100%;
   margin-top: 10px;
+  margin-bottom: 20px;
 }
 
 a {
@@ -75,6 +76,7 @@ a {
   flex-direction: column;
   width: 100%;
   margin-top: 20px;
+  max-width: 960px;
 
   %row {
     display: grid;
@@ -137,12 +139,21 @@ a {
   max-width: 960px;
 }
 
+.require-auth {
+  display: none;
+}
+
+.acquire-auth {
+  display: none;
+}
+
 form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 5px 20px;
   width: 100%;
   max-width: 960px;
+  margin-top: 20px;
 
   label {
     display: flex;
@@ -183,6 +194,17 @@ form {
     input[type=submit] {
       margin: 0;
       background-color: $delete-color;
+    }
+  }
+
+  .login {
+    width: 100%;
+    grid-column: 2 / 3;
+    display: flex;
+    flex-flow: row-reverse;
+    input[type=submit] {
+      margin: 0;
+      background-color: $submit-color;
     }
   }
 

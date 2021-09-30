@@ -18,3 +18,7 @@ export type PageinatedResponse = {
     previous: string|null,
     results: Course[]
 }
+
+let banana = "banana";
+let bananaArr = [...banana];
+console.log(bananaArr);

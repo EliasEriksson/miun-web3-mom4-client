@@ -7,8 +7,22 @@ export const redirect = (from: URL, to: string): never => {
     if (to.startsWith("/")) {
         from.pathname = to;
     } else {
-        from.pathname += to;
+        if (from.pathname.endsWith("/")) {
+            from.pathname += to;
+        } else {
+            // localhost/index.html
+            let pathParts = from.pathname.split("/");
+            if (to.endsWith("/")) {
+                pathParts[pathParts.length - 2] += `/${to.substring(0, to.length - 1)}`
+            } else {
+                pathParts[pathParts.length - 2] += `/${to}`;
+            }
+            from.pathname = pathParts.join("/");
+            console.log(from);
+        }
+
     }
+    console.log(from)
     document.location.href = from.href;
     throw "Redirecting"; // adding this so ts understands this function never returns
 }
@@ -31,15 +45,17 @@ export const requestToken = async (username: string, password: string): Promise<
 
 export const requestEndpoint = async (
     endpoint: string,
-    token: string,
+    token: string|null,
     method: RequestMethods = "GET",
     data: object|undefined = undefined): Promise<[any, number]> => {
     let init: RequestInit = {
         method: method,
         headers: {
-            "Authorization": `Token ${token}`,
             "Content-Type": "application/json"
         }
+    }
+    if (token) {
+        init.headers["Authorization"] = `Token ${token}`;
     }
     if (data) {
         init["body"] = JSON.stringify(data);

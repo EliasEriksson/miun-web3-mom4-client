@@ -10,14 +10,19 @@
 </head>
 <body>
 <header>
-    <form>
+    <form class="require-auth">
         <div class="logout">
             <input id="logout" type="submit" value="Logga ut">
         </div>
     </form>
+    <form class="acquire-auth">
+        <div class="login">
+            <input id="login" type="submit" value="Logga in">
+        </div>
+    </form>
 </header>
 <main>
-    <form>
+    <form class="require-auth">
         <label>Kurskod:
             <input id="code" type="text" autocomplete="off">
         </label>
