@@ -40,6 +40,12 @@ class CourseLoader {
         this.paginatorList = <HTMLUListElement>document.getElementById("pageinator-list");
         let requireAuthForms = document.getElementsByClassName("require-auth");
         let loginForm = document.getElementsByClassName("acquire-auth");
+        let loginElement = document.getElementById("login")
+
+        loginElement.addEventListener("click", (event) => {
+            event.preventDefault();
+            redirect(currentURL, "authenticate/");
+        })
 
         if (token) {
             // user is logged in so forms that requires authentication can be viewed.
@@ -50,10 +56,6 @@ class CourseLoader {
             // user is not logged in. viewing forms for login.
             for (let i = 0; i < loginForm.length; i++) {
                 (<HTMLElement>loginForm.item(i)).style.display = "grid";
-                loginForm.item(i).addEventListener("click", (event) => {
-                    event.preventDefault();
-                    redirect(currentURL, "authenticate/");
-                })
             }
         }
 
