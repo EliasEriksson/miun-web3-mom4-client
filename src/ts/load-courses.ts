@@ -174,8 +174,8 @@ class CourseLoader {
      * @param course
      */
     prepareCourse = (course: Course): { [key: string]: string } => {
-        const code_href = new URL(currentURL.href);
-        updateURL(code_href, "edit/");
+        const code_href = updateURL(new URL(currentURL.href), "edit/");
+        updateURL(new URL(currentURL.href), "edit/");
         code_href.searchParams.append("code", course.code);
         course["code_href"] = code_href.href;
         course.code = course.code.toUpperCase()

@@ -13,29 +13,30 @@ type RequestMethods = "GET" | "POST" | "PUT" | "DELETE";
  * @param to: a string to add onto the URL pathname.
  */
 export const updateURL = (from: URL, to: string): URL => {
+    let url = new URL(from.href);
     if (to.startsWith("/")) {
         // absolute URL
-        from.pathname = to;
+        url.pathname = to;
     } else {
         // relative URL
-        if (from.pathname.endsWith("/")) {
+        if (url.pathname.endsWith("/")) {
             // to did not specify a file (.../) in the request
             // so the to location can simply be added on top of it.
-            from.pathname += to;
+            url.pathname += to;
         } else {
             // to does specify a specific file (.../index.html) in the request
             // so teh location is added onto before the file.
             // hopefully the file was index.html otherwise it most likely will fail.
-            let pathParts = from.pathname.split("/");
+            let pathParts = url.pathname.split("/");
             if (to.endsWith("/")) {
                 pathParts[pathParts.length - 2] += `/${to.substring(0, to.length - 1)}`
             } else {
                 pathParts[pathParts.length - 2] += `/${to}`;
             }
-            from.pathname = pathParts.join("/");
+            url.pathname = pathParts.join("/");
         }
     }
-    return from;
+    return url;
 }
 
 
