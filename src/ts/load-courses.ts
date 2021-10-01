@@ -1,4 +1,4 @@
-import {currentURL, requestEndpoint, redirect, requestTemplate} from "./url.js";
+import {currentURL, requestEndpoint, redirect, updateURL, requestTemplate} from "./url.js";
 import {render} from "./xrender.js";
 import {shake, writeErrors} from "./error.js";
 import {PageinatedResponse, Course} from "./constants.js";
@@ -175,7 +175,7 @@ class CourseLoader {
      */
     prepareCourse = (course: Course): { [key: string]: string } => {
         const code_href = new URL(currentURL.href);
-        code_href.pathname += "edit/";
+        updateURL(code_href, "edit/");
         code_href.searchParams.append("code", course.code);
         course["code_href"] = code_href.href;
         course.code = course.code.toUpperCase()

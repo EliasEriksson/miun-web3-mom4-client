@@ -3,13 +3,16 @@ export const currentURL = new URL(document.location.href);
 
 type RequestMethods = "GET" | "POST" | "PUT" | "DELETE";
 
+
 /**
- * redirects the user from one page to another.
+ * adds the path 'to' to the 'from' url
+ *
+ * modifies the given URL in place and returns the URL object as well.
  *
  * @param from: a URL object, this will almost always be set to currentURL.
  * @param to: a string to add onto the URL pathname.
  */
-export const redirect = (from: URL, to: string): never => {
+export const updateURL = (from: URL, to: string): URL => {
     if (to.startsWith("/")) {
         // absolute URL
         from.pathname = to;
@@ -31,9 +34,19 @@ export const redirect = (from: URL, to: string): never => {
             }
             from.pathname = pathParts.join("/");
         }
-
     }
-    document.location.href = from.href;
+    return from;
+}
+
+
+/**
+ * redirects the user from one page to another.
+ *
+ * @param from: a URL object
+ * @param to: where to redirect to.
+ */
+export const redirect = (from: URL, to: string): never => {
+    document.location.href = updateURL(from, to).href;
     throw "Redirecting"; // adding this so ts understands this function never returns
 }
 
