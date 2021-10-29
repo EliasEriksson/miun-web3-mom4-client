@@ -1,4 +1,4 @@
-export const apiURL = new URL("https://web3mom5rest.eliaseriksson.eu/");
+export const apiURL = new URL("https://web3mom5rest.eliaseriksson.io/");
 export const currentURL = new URL(document.location.href);
 
 type RequestMethods = "GET" | "POST" | "PUT" | "DELETE";
