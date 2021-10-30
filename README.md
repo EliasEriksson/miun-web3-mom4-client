@@ -1,5 +1,5 @@
 # miun-web3-mom5-client
-Hosted at https://miun.eliaseriksson.eu/web3/moment5/
+Hosted at https://miun.eliaseriksson.io/web3/moment5/
 
 ## About
 This website is a way to interact with the REST webservice hosted at https://web3mom5.eliaseriksson.eu/ 
